@@ -39,8 +39,6 @@ if __name__ == "__main__":
   bytestr = encode(FILEDIR)
   threeBit = [bytestr[i:i+3] for i in range(0, len(bytestr), 3)]
   threeBitLen = len(threeBit)
-  print(threeBitLen)
-
 
   for i in range(ceil(threeBitLen/frameSize)):
     img = Image.new('RGB', (WIDTH, HEIGHT), '#808080')
