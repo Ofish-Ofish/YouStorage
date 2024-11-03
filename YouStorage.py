@@ -1,26 +1,57 @@
 from PIL import Image, ImageDraw
 import re
+import os
+import cv2 as cv
 from math import ceil
 
-def encode(filedir):
+def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
     text = f.read()
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
-
-def decode(binary, n):
+  
+def binaryToText(binary, n):
   intList = []
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
   for b  in byteList:
     intList.append(int(b, 2))
   return bytes(intList).decode('utf-8')
+  
+def bitsToImg(binary, colors, frameSize, width, height):
+    threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
+    threeBitLen = len(threeBit)
 
+    os.makedirs("img", exist_ok=True)
+    os.chdir("img")
+    for i in range(ceil(threeBitLen/frameSize)):
+      img = Image.new('RGB', (width, height), '#808080')
+      draw = ImageDraw.Draw(img)
+
+      for j in range(height):
+        for k in range(width):
+          idx = i * frameSize + j * width + k
+          if idx < threeBitLen:
+            color = colors.get(threeBit[idx], "#808080")
+            draw.point((k, j), fill=color)
+          else:
+            break
+      img.save(f'my_image{i}.png')
+    os.chdir("..")
+
+def imgToVid(imgFolder, vidName):
+  images = [img for img in os.listdir(imgFolder)] 
+
+  video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
+  for image in images:  
+    video.write(cv.imread(os.path.join(imgFolder, image))) 
+
+  cv.destroyAllWindows() 
+  video.release()
 
 if __name__ == "__main__":
-  FILEDIR = "book.txt"
-  # print(encode(FILEDIR))
-  # print(decode(encode(FILEDIR), 8))
-
-  colors = {
+  TEXT = "book.txt"
+  IMGDIR = "img"
+  VIDNAME = "bible.avi"
+  COLORS = {
      "000" : "#000000",
      "001" : "#FF0000",
      "010" : "#00FF00",
@@ -31,36 +62,8 @@ if __name__ == "__main__":
      "111" : "#FFFFFF",
 
   }
-
   WIDTH = 1920
   HEIGHT = 1080
-  frameSize = WIDTH * HEIGHT
-
-  bytestr = encode(FILEDIR)
-  threeBit = [bytestr[i:i+3] for i in range(0, len(bytestr), 3)]
-  threeBitLen = len(threeBit)
-
-  for i in range(ceil(threeBitLen/frameSize)):
-    img = Image.new('RGB', (WIDTH, HEIGHT), '#808080')
-    draw = ImageDraw.Draw(img)
-    for j in range(HEIGHT):
-      for k in range(WIDTH):
-        idx = i * frameSize + j * WIDTH + k
-        if idx < threeBitLen:
-          color = colors.get(threeBit[idx], "#808080")
-          draw.point((k, j), fill=color)
-        else:
-          break
-    img.save(f'my_image{i}.png')
-
-
-
-
-
-  # print(threeBit)
-
-  # for i in range(1000):
-    # draw.point((i, i), fill=colors["000"])
-
-  # Save the image
-  # img.save('my_image.png')
+  FRAMESIZE = WIDTH * HEIGHT
+  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT)
+  imgToVid(IMGDIR, VIDNAME)
