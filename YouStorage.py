@@ -3,6 +3,7 @@ import re
 import os
 import cv2 as cv
 from math import ceil
+import yt_dlp
 
 def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
@@ -47,10 +48,20 @@ def imgToVid(imgFolder, vidName):
   cv.destroyAllWindows() 
   video.release()
 
+def youtubeToVid(link, savePath):
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',  # Choose the best quality available
+        'outtmpl': f'{savePath}/%(title)s.%(ext)s',  # Save in specified directory
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([link])
+
+
 if __name__ == "__main__":
   TEXT = "book.txt"
   IMGDIR = "img"
   VIDNAME = "bible.avi"
+  SAVEPATH = "."
   COLORS = {
      "000" : "#000000",
      "001" : "#FF0000",
@@ -65,5 +76,6 @@ if __name__ == "__main__":
   WIDTH = 1920
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
-  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT)
-  imgToVid(IMGDIR, VIDNAME)
+  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT)
+  # imgToVid(IMGDIR, VIDNAME)
+  # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
