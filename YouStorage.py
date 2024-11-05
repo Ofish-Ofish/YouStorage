@@ -35,7 +35,7 @@ def bitsToImg(binary, colors, frameSize, width, height):
             draw.point((k, j), fill=color)
           else:
             break
-      img.save(f'my_image{i}.png')
+      img.save(f'myImg{i}.png')
     os.chdir("..")
 
 def imgToVid(imgFolder, vidName):
@@ -50,11 +50,28 @@ def imgToVid(imgFolder, vidName):
 
 def youtubeToVid(link, savePath):
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',  # Choose the best quality available
-        'outtmpl': f'{savePath}/%(title)s.%(ext)s',  # Save in specified directory
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': f'{savePath}/%(title)s.%(ext)s',  
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
+
+def vidToPics(vidName):
+  vidcap = cv.VideoCapture(vidName)
+  success,image = vidcap.read()
+  count = 0
+  os.chdir("img")
+  while success:
+    cv.imwrite("frame%d.png" % count, image)         
+    success,image = vidcap.read()
+    print('Read a new frame: ', success)
+    count += 1
+  os.chdir("..")
+
+def picToBinary(pic):
+  im = Image.open(pic) 
+  pix = im.load()
+  print (pix[0,0])
 
 
 if __name__ == "__main__":
@@ -79,3 +96,5 @@ if __name__ == "__main__":
   # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT)
   # imgToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
+  vidToPics(VIDNAME)
+  picToBinary("img/frame0.png")
