@@ -4,6 +4,7 @@ import os
 import cv2 as cv
 from math import ceil
 import yt_dlp
+from pprint import pprint
 
 def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
@@ -68,10 +69,15 @@ def vidToPics(vidName):
     count += 1
   os.chdir("..")
 
-def picToBinary(pic):
+def picToBinary(pic, height, width, frameSize):
+  pixels = []
   im = Image.open(pic) 
   pix = im.load()
-  print (pix[0,0])
+  for i in range(height):
+    for j in range(width):
+      pixels.append(pix[j,i])
+  return pixels
+      
 
 
 if __name__ == "__main__":
@@ -97,4 +103,4 @@ if __name__ == "__main__":
   # imgToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
   vidToPics(VIDNAME)
-  picToBinary("img/frame0.png")
+  pprint(picToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE))
