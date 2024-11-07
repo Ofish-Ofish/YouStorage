@@ -18,25 +18,51 @@ def binaryToText(binary, n):
     intList.append(int(b, 2))
   return bytes(intList).decode('utf-8')
   
-def bitsToImg(binary, colors, frameSize, width, height):
+def bitsToImg(binary, colors, frameSize, width, height, compressionFactor):
     threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
     threeBitLen = len(threeBit)
 
     os.makedirs("img", exist_ok=True)
     os.chdir("img")
-    for i in range(ceil(threeBitLen/frameSize)):
+
+    scaledWidth = width // compressionFactor
+    scaledHeight = height // compressionFactor
+    pixelsPerFrame = scaledWidth * scaledHeight
+
+    for i in range(ceil(threeBitLen/pixelsPerFrame)):
       img = Image.new('RGB', (width, height), '#808080')
       draw = ImageDraw.Draw(img)
 
-      for j in range(height):
-        for k in range(width):
-          idx = i * frameSize + j * width + k
+      for j in range(scaledHeight):
+        for k in range(scaledWidth):
+          idx = i * pixelsPerFrame + j * scaledWidth + k
+
           if idx < threeBitLen:
             color = colors.get(threeBit[idx], "#808080")
-            draw.point((k, j), fill=color)
+
+            x = k * compressionFactor
+            y = j * compressionFactor
+            draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
           else:
             break
       img.save(f'myImg{i}.png')
+      break
+
+    # img.save(f'myImg.png')
+
+    # for i in range(ceil(threeBitLen/frameSize)):
+    #   img = Image.new('RGB', (width, height), '#808080')
+    #   draw = ImageDraw.Draw(img)
+
+    #   for j in range(height):
+    #     for k in range(width):
+    #       idx = i * frameSize + j * width + k
+    #       if idx < threeBitLen:
+    #         color = colors.get(threeBit[idx], "#808080")
+    #         draw.point((k, j), fill=color)
+    #       else:
+    #         break
+    #   img.save(f'myImg{i}.png')
     os.chdir("..")
 
 def imgToVid(imgFolder, vidName):
@@ -99,8 +125,8 @@ if __name__ == "__main__":
   WIDTH = 1920
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
-  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT)
+  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, 2)
   # imgToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  vidToPics(VIDNAME)
-  pprint(picToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE))
+  # vidToPics(VIDNAME)
+  pprint(picToBinary("img/myImg0.png", HEIGHT, WIDTH, FRAMESIZE))
