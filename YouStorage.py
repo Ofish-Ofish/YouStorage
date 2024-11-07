@@ -48,7 +48,7 @@ def bitsToImg(binary, colors, frameSize, width, height, compressionFactor):
       img.save(f'myImg{i}.png')
     os.chdir("..")
 
-def imgToVid(imgFolder, vidName):
+def imgsToVid(imgFolder, vidName):
   images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
 
   video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
@@ -110,7 +110,7 @@ if __name__ == "__main__":
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
   bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, 2)
-  imgToVid(IMGDIR, VIDNAME)
+  imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
   vidToPics(VIDNAME)
   # pprint(picToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE))
