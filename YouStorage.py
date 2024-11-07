@@ -46,27 +46,10 @@ def bitsToImg(binary, colors, frameSize, width, height, compressionFactor):
           else:
             break
       img.save(f'myImg{i}.png')
-      break
-
-    # img.save(f'myImg.png')
-
-    # for i in range(ceil(threeBitLen/frameSize)):
-    #   img = Image.new('RGB', (width, height), '#808080')
-    #   draw = ImageDraw.Draw(img)
-
-    #   for j in range(height):
-    #     for k in range(width):
-    #       idx = i * frameSize + j * width + k
-    #       if idx < threeBitLen:
-    #         color = colors.get(threeBit[idx], "#808080")
-    #         draw.point((k, j), fill=color)
-    #       else:
-    #         break
-    #   img.save(f'myImg{i}.png')
     os.chdir("..")
 
 def imgToVid(imgFolder, vidName):
-  images = [img for img in os.listdir(imgFolder)] 
+  images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
 
   video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
   for image in images:  
@@ -102,6 +85,7 @@ def picToBinary(pic, height, width, frameSize):
   for i in range(height):
     for j in range(width):
       pixels.append(pix[j,i])
+    break
   return pixels
       
 
@@ -109,7 +93,7 @@ def picToBinary(pic, height, width, frameSize):
 if __name__ == "__main__":
   TEXT = "book.txt"
   IMGDIR = "img"
-  VIDNAME = "bible.avi"
+  VIDNAME = "bible.mp4v"
   SAVEPATH = "."
   COLORS = {
      "000" : "#000000",
@@ -126,7 +110,7 @@ if __name__ == "__main__":
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
   bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, 2)
-  # imgToVid(IMGDIR, VIDNAME)
+  imgToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  # vidToPics(VIDNAME)
-  pprint(picToBinary("img/myImg0.png", HEIGHT, WIDTH, FRAMESIZE))
+  vidToPics(VIDNAME)
+  # pprint(picToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE))
