@@ -78,14 +78,23 @@ def vidToPics(vidName):
     count += 1
   os.chdir("..")
 
-def picToBinary(pic, height, width, frameSize):
+def picsToBinary(pic, height, width, frameSize, compressionFactor):
   pixels = []
   im = Image.open(pic) 
-  pix = im.load()
-  for i in range(height):
-    for j in range(width):
-      pixels.append(pix[j,i])
-    break
+  px = im.load()
+
+  scaledWidth = width // compressionFactor
+  scaledHeight = height // compressionFactor
+  pixelsPerFrame = scaledWidth * scaledHeight
+
+  for j in range(scaledHeight):
+    for k in range(scaledWidth):
+      print(px[k * compressionFactor,j * compressionFactor])
+      print(px[k * compressionFactor + compressionFactor - 1,j * compressionFactor])
+      print(px[k * compressionFactor,j * compressionFactor + compressionFactor - 1])
+      print(px[k * compressionFactor + compressionFactor - 1,j * compressionFactor + compressionFactor -1])
+      quit()
+
   return pixels
       
 
@@ -109,8 +118,9 @@ if __name__ == "__main__":
   WIDTH = 1920
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
-  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, 2)
-  imgsToVid(IMGDIR, VIDNAME)
+  COMPRESSIONFACTOR = 2
+  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  # imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  vidToPics(VIDNAME)
-  # pprint(picToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE))
+  # vidToPics(VIDNAME)
+  pprint(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR))
