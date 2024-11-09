@@ -78,7 +78,8 @@ def vidToPics(vidName):
     count += 1
   os.chdir("..")
 
-def picsToBinary(pic, height, width, frameSize, compressionFactor):
+def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
+  threeBit = []
   pixels = []
   im = Image.open(pic) 
   px = im.load()
@@ -89,10 +90,32 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor):
 
   for j in range(scaledHeight):
     for k in range(scaledWidth):
-      print(px[k * compressionFactor,j * compressionFactor])
-      print(px[k * compressionFactor + compressionFactor - 1,j * compressionFactor])
-      print(px[k * compressionFactor,j * compressionFactor + compressionFactor - 1])
-      print(px[k * compressionFactor + compressionFactor - 1,j * compressionFactor + compressionFactor -1])
+      #ths code will have to be manually adjusted based on the compression factor. i cant think of a solution that doesnt require manual imput right now.
+      pixelGroup = [
+        px[k * compressionFactor, j * compressionFactor],
+        px[k * compressionFactor + 1, j * compressionFactor],
+        px[k * compressionFactor, j * compressionFactor + 1],
+        px[k * compressionFactor + 1, j * compressionFactor + 1]
+      ]
+
+      avgR = [pixelGroup[0][0], pixelGroup[1][0], pixelGroup[2][0], pixelGroup[3][0]]
+      avgG = [pixelGroup[0][1], pixelGroup[1][1], pixelGroup[2][1], pixelGroup[3][1]]
+      avgB = [pixelGroup[0][2], pixelGroup[1][2], pixelGroup[2][2], pixelGroup[3][2]]
+
+      averageColor = [
+        sum(avgR)/len(avgR),
+        sum(avgG)/len(avgG),
+        sum(avgB)/len(avgB),
+      ]
+
+      distances = []
+      for color in colors.values():
+        color = color.lstrip('#')
+        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
+      # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
+      # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+      threeBit.append(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
       quit()
 
   return pixels
@@ -123,4 +146,4 @@ if __name__ == "__main__":
   # imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
   # vidToPics(VIDNAME)
-  pprint(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR))
+  pprint(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR, COLORS))
