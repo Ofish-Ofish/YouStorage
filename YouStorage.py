@@ -54,6 +54,7 @@ def imgsToVid(imgFolder, vidName):
   video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
   for image in images:  
     video.write(cv.imread(os.path.join(imgFolder, image))) 
+    os.remove(f"img/{image}")
 
   cv.destroyAllWindows() 
   video.release()
@@ -79,7 +80,7 @@ def vidToPics(vidName):
   os.chdir("..")
 
 def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
-  threeBit = []
+  binary = ""
   pixels = []
   im = Image.open(pic) 
   px = im.load()
@@ -87,10 +88,9 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
   scaledWidth = width // compressionFactor
   scaledHeight = height // compressionFactor
   pixelsPerFrame = scaledWidth * scaledHeight
-
   for j in range(scaledHeight):
     for k in range(scaledWidth):
-      #ths code will have to be manually adjusted based on the compression factor. i cant think of a solution that doesnt require manual imput right now.
+        #ths code will have to be manually adjusted based on the compression factor. i cant think of a solution that doesnt require manual imput right now.
       pixelGroup = [
         px[k * compressionFactor, j * compressionFactor],
         px[k * compressionFactor + 1, j * compressionFactor],
@@ -115,10 +115,9 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
         distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
       # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
       # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
-      threeBit.append(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
-      quit()
+      binary+=(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
 
-  return pixels
+  return binary
       
 
 
@@ -142,8 +141,8 @@ if __name__ == "__main__":
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
   COMPRESSIONFACTOR = 2
-  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
-  # imgsToVid(IMGDIR, VIDNAME)
+  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  # vidToPics(VIDNAME)
+  vidToPics(VIDNAME)
   pprint(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR, COLORS))
