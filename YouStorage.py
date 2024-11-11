@@ -121,9 +121,7 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
         binary+=(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
     os.remove(image)
   os.chdir("..")
-  return binary
-      
-
+  return binary   
 
 if __name__ == "__main__":
   TEXT = "bible.txt"
