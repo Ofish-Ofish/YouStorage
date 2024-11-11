@@ -16,7 +16,7 @@ def binaryToText(binary, n):
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
   for b  in byteList:
     intList.append(int(b, 2))
-  return bytes(intList).decode('utf-8')
+  return bytes(intList).decode('utf-8', errors='replace')
   
 def bitsToImg(binary, colors, frameSize, width, height, compressionFactor):
     threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
@@ -90,17 +90,14 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
   pixelsPerFrame = scaledWidth * scaledHeight
   for j in range(scaledHeight):
     for k in range(scaledWidth):
-        #ths code will have to be manually adjusted based on the compression factor. i cant think of a solution that doesnt require manual imput right now.
-      pixelGroup = [
-        px[k * compressionFactor, j * compressionFactor],
-        px[k * compressionFactor + 1, j * compressionFactor],
-        px[k * compressionFactor, j * compressionFactor + 1],
-        px[k * compressionFactor + 1, j * compressionFactor + 1]
-      ]
+      pixelGroup = []
+      for m in range(compressionFactor):
+          for n in range(compressionFactor):
+              pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
 
-      avgR = [pixelGroup[0][0], pixelGroup[1][0], pixelGroup[2][0], pixelGroup[3][0]]
-      avgG = [pixelGroup[0][1], pixelGroup[1][1], pixelGroup[2][1], pixelGroup[3][1]]
-      avgB = [pixelGroup[0][2], pixelGroup[1][2], pixelGroup[2][2], pixelGroup[3][2]]
+      avgR = [pixel[0] for pixel in pixelGroup]
+      avgG = [pixel[1] for pixel in pixelGroup]
+      avgB = [pixel[2] for pixel in pixelGroup]
 
       averageColor = [
         sum(avgR)/len(avgR),
@@ -122,7 +119,7 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
 
 
 if __name__ == "__main__":
-  TEXT = "book.txt"
+  TEXT = "bible.txt"
   IMGDIR = "img"
   VIDNAME = "bible.mp4v"
   SAVEPATH = "."
@@ -141,8 +138,10 @@ if __name__ == "__main__":
   HEIGHT = 1080
   FRAMESIZE = WIDTH * HEIGHT
   COMPRESSIONFACTOR = 2
-  bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
-  imgsToVid(IMGDIR, VIDNAME)
+  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  # imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  vidToPics(VIDNAME)
-  pprint(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR, COLORS))
+  # vidToPics(VIDNAME)
+  
+  with open("newBible.txt", "w", encoding="utf-8") as f:
+    f.write(binaryToText(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR, COLORS), 8))
