@@ -18,7 +18,7 @@ def binaryToText(binary, n):
     intList.append(int(b, 2))
   return bytes(intList).decode('utf-8', errors='replace')
   
-def bitsToImg(binary, colors, frameSize, width, height, compressionFactor):
+def bitsToImg(binary, colors, width, height, compressionFactor):
     threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
     threeBitLen = len(threeBit)
 
@@ -78,42 +78,49 @@ def vidToPics(vidName):
     print('Read a new frame: ', success)
     count += 1
   os.chdir("..")
+  vidcap.release()
+  os.remove(vidName)
 
-def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
+def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   binary = ""
   pixels = []
-  im = Image.open(pic) 
-  px = im.load()
-
   scaledWidth = width // compressionFactor
   scaledHeight = height // compressionFactor
   pixelsPerFrame = scaledWidth * scaledHeight
-  for j in range(scaledHeight):
-    for k in range(scaledWidth):
-      pixelGroup = []
-      for m in range(compressionFactor):
-          for n in range(compressionFactor):
-              pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
+  images = [f"frame{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
+  os.chdir("img")
+  colors[""] = "#808080"
 
-      avgR = [pixel[0] for pixel in pixelGroup]
-      avgG = [pixel[1] for pixel in pixelGroup]
-      avgB = [pixel[2] for pixel in pixelGroup]
+  for image in images:
+    im = Image.open(image) 
+    px = im.load()
+    for j in range(scaledHeight):
+      for k in range(scaledWidth):
+        pixelGroup = []
+        for m in range(compressionFactor):
+            for n in range(compressionFactor):
+                pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
 
-      averageColor = [
-        sum(avgR)/len(avgR),
-        sum(avgG)/len(avgG),
-        sum(avgB)/len(avgB),
-      ]
+        avgR = [pixel[0] for pixel in pixelGroup]
+        avgG = [pixel[1] for pixel in pixelGroup]
+        avgB = [pixel[2] for pixel in pixelGroup]
 
-      distances = []
-      for color in colors.values():
-        color = color.lstrip('#')
-        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
-      # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
-      # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
-      binary+=(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+        averageColor = [
+          sum(avgR)/len(avgR),
+          sum(avgG)/len(avgG),
+          sum(avgB)/len(avgB),
+        ]
 
+        distances = []
+        for color in colors.values():
+          color = color.lstrip('#')
+          color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+          distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
+        # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
+        # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+        binary+=(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+    os.remove(image)
+  os.chdir("..")
   return binary
       
 
@@ -121,7 +128,7 @@ def picsToBinary(pic, height, width, frameSize, compressionFactor, colors):
 if __name__ == "__main__":
   TEXT = "bible.txt"
   IMGDIR = "img"
-  VIDNAME = "bible.mp4v"
+  VIDNAME = "bible.avi"
   SAVEPATH = "."
   COLORS = {
      "000" : "#000000",
@@ -136,12 +143,10 @@ if __name__ == "__main__":
   }
   WIDTH = 1920
   HEIGHT = 1080
-  FRAMESIZE = WIDTH * HEIGHT
   COMPRESSIONFACTOR = 2
-  # bitsToImg(textToBinary(TEXT), COLORS, FRAMESIZE, WIDTH, HEIGHT, COMPRESSIONFACTOR)
-  # imgsToVid(IMGDIR, VIDNAME)
+  bitsToImg(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  # vidToPics(VIDNAME)
-  
+  vidToPics(VIDNAME)
   with open("newBible.txt", "w", encoding="utf-8") as f:
-    f.write(binaryToText(picsToBinary("img/frame0.png", HEIGHT, WIDTH, FRAMESIZE, COMPRESSIONFACTOR, COLORS), 8))
+    f.write(binaryToText(picsToBinary(IMGDIR, HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS), 8))
