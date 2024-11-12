@@ -91,6 +91,9 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   os.chdir("img")
   colors[""] = "#808080"
 
+  colorKeys = list(colors.keys())
+  colorValues = [tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) for color in colors.values()]
+
   for image in images:
     im = Image.open(image) 
     px = im.load()
@@ -101,24 +104,22 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
             for n in range(compressionFactor):
                 pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
 
-        avgR = [pixel[0] for pixel in pixelGroup]
-        avgG = [pixel[1] for pixel in pixelGroup]
-        avgB = [pixel[2] for pixel in pixelGroup]
+        avgR, avgG, avgB = 0, 0, 0
 
-        averageColor = [
-          sum(avgR)/len(avgR),
-          sum(avgG)/len(avgG),
-          sum(avgB)/len(avgB),
-        ]
+        for pixel in pixelGroup:
+          avgR += pixel[0]
+          avgG += pixel[1]
+          avgB += pixel[2]
 
+        pixelNum = len(pixelGroup)
+        averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum,]
+        
         distances = []
-        for color in colors.values():
-          color = color.lstrip('#')
-          color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        for color in colorValues:
           distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
         # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
         # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
-        binary+=(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+        binary+=(colorKeys[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
     os.remove(image)
   os.chdir("..")
   return binary   
