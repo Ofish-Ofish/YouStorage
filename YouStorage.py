@@ -83,16 +83,15 @@ def vidToPics(vidName):
 
 def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   binary = ""
-  pixels = []
   scaledWidth = width // compressionFactor
   scaledHeight = height // compressionFactor
-  pixelsPerFrame = scaledWidth * scaledHeight
   images = [f"frame{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
   os.chdir("img")
   colors[""] = "#808080"
 
   colorKeys = list(colors.keys())
-  colorValues = [tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) for color in colors.values()]
+  cleanColorValues = [tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) for color in colors.values()]
+  colorValues = list(colors.values())
 
   for image in images:
     im = Image.open(image) 
@@ -101,8 +100,8 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
       for k in range(scaledWidth):
         pixelGroup = []
         for m in range(compressionFactor):
-            for n in range(compressionFactor):
-                pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
+          for n in range(compressionFactor):
+            pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
 
         avgR, avgG, avgB = 0, 0, 0
 
@@ -114,12 +113,8 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
         pixelNum = len(pixelGroup)
         averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum,]
         
-        distances = []
-        for color in colorValues:
-          distances.append((((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)))
-        # print(averageColor, distances, distances.index(min(distances)), list(colors.values())[distances.index(min(distances))])
-        # print(list(colors.keys())[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
-        binary+=(colorKeys[list(colors.values()).index(list(colors.values())[distances.index(min(distances))])])
+        distances = [(((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)) for color in cleanColorValues]
+        binary+=(colorKeys[colorValues.index(colorValues[distances.index(min(distances))])])
     os.remove(image)
   os.chdir("..")
   return binary   
