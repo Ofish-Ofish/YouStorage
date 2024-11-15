@@ -7,6 +7,74 @@ import yt_dlp
 from multiprocessing import Pool, cpu_count
 import time
 import sys
+import itertools
+import threading
+
+def dot12():
+    global animationFinished
+    for c in itertools.cycle([
+      "⢀⠀ ",
+			"⡀⠀ ",
+			"⠄⠀ ",
+			"⢂⠀ ",
+			"⡂⠀ ",
+			"⠅⠀ ",
+			"⢃⠀ ",
+			"⡃⠀ ",
+			"⠍⠀ ",
+			"⢋⠀ ",
+			"⡋⠀ ",
+			"⠍⠁ ",
+			"⢋⠁ ",
+			"⡋⠁ ",
+			"⠍⠉ ",
+			"⠋⠉ ",
+			"⠋⠉ ",
+			"⠉⠙ ",
+			"⠉⠙ ",
+			"⠉⠩ ",
+			"⠈⢙ ",
+			"⠈⡙ ",
+			"⢈⠩ ",
+			"⡀⢙ ",
+			"⠄⡙ ",
+			"⢂⠩ ",
+			"⡂⢘ ",
+			"⠅⡘ ",
+			"⢃⠨ ",
+			"⡃⢐ ",
+			"⠍⡐ ",
+			"⢋⠠ ",
+			"⡋⢀ ",
+			"⠍⡁ ",
+			"⢋⠁ ",
+			"⡋⠁ ",
+			"⠍⠉ ",
+			"⠋⠉ ",
+			"⠋⠉ ",
+			"⠉⠙ ",
+			"⠉⠙ ",
+			"⠉⠩ ",
+			"⠈⢙ ",
+			"⠈⡙ ",
+			"⠈⠩ ",
+			"⠀⢙ ",
+			"⠀⡙ ",
+			"⠀⠩ ",
+			"⠀⢘ ",
+			"⠀⡘ ",
+			"⠀⠨ ",
+			"⠀⢐ ",
+			"⠀⡐ ",
+			"⠀⠠ ",
+			"⠀⢀ ",
+			"⠀⡀ "
+      ]):
+        if animationFinished:
+            break
+        sys.stdout.write('\rloading ' + c)
+        sys.stdout.flush()
+        time.sleep(0.04)
 
 def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
@@ -45,10 +113,9 @@ def bitsToImgs(binary, colors, width, height, compressionFactor):
           else:
             break
       img.save(f'myImg{i}.png')
-      print(f"Saved image {i}")
+
     os.chdir("..")
     time.sleep(.1)
-    os.system('cls' if os.name == 'nt' else 'clear')
 
 def imgsToVid(imgFolder, vidName):
   images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
@@ -78,14 +145,12 @@ def vidToPics(vidName):
   while success:
     cv.imwrite("frame%d.png" % count, image)         
     success,image = vidcap.read()
-    print('Read a new frame: ', success)
     count += 1
 
   os.chdir("..")
   vidcap.release()
   os.remove(vidName)
   time.sleep(.1)
-  os.system('cls' if os.name == 'nt' else 'clear')
 
 def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   binary = ""
@@ -106,6 +171,7 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
 
   for res in binaryList:
     binary += res.get()
+
   return binary 
 
 def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues):
@@ -141,6 +207,7 @@ if __name__ == "__main__":
   IMGDIR = "img"
   VIDNAME = "bible.avi"
   SAVEPATH = "."
+
   COLORS = {
      "000" : "#000000",
      "001" : "#FF0000",
@@ -152,9 +219,16 @@ if __name__ == "__main__":
      "111" : "#FFFFFF",
 
   }
+
   WIDTH = 1920
   HEIGHT = 1080
   COMPRESSIONFACTOR = 2
+
+  animationFinished = False
+
+  t = threading.Thread(target=dot12, )
+  t.start()
+
   starttime = time.time()
   bitsToImgs(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
   imgsToVid(IMGDIR, VIDNAME)
@@ -162,4 +236,7 @@ if __name__ == "__main__":
   vidToPics(VIDNAME)
   with open("newBible.txt", "w", encoding="utf-8") as f:
     f.write(binaryToText(picsToBinary(IMGDIR, HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS), 8))
+
+  animationFinished = True
+  os.system('cls' if os.name == 'nt' else 'clear')
   print("Time taken: ", time.time() - starttime)
