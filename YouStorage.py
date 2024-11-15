@@ -6,6 +6,7 @@ from math import ceil
 import yt_dlp
 from multiprocessing import Pool, cpu_count
 import time
+import sys
 
 def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
@@ -13,13 +14,11 @@ def textToBinary(filedir):
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
   
 def binaryToText(binary, n):
-  intList = []
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
-  for b  in byteList:
-    intList.append(int(b, 2))
+  intList = [int(b, 2) for b in byteList]
   return bytes(intList).decode('utf-8', errors='replace')
   
-def bitsToImg(binary, colors, width, height, compressionFactor):
+def bitsToImgs(binary, colors, width, height, compressionFactor):
     threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
     threeBitLen = len(threeBit)
 
@@ -40,19 +39,21 @@ def bitsToImg(binary, colors, width, height, compressionFactor):
 
           if idx < threeBitLen:
             color = colors.get(threeBit[idx], "#808080")
-
             x = k * compressionFactor
             y = j * compressionFactor
             draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
           else:
             break
       img.save(f'myImg{i}.png')
+      print(f"Saved image {i}")
     os.chdir("..")
+    time.sleep(.1)
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def imgsToVid(imgFolder, vidName):
   images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
-
   video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
+
   for image in images:  
     video.write(cv.imread(os.path.join(imgFolder, image))) 
     os.remove(f"img/{image}")
@@ -73,14 +74,18 @@ def vidToPics(vidName):
   success,image = vidcap.read()
   count = 0
   os.chdir("img")
+
   while success:
     cv.imwrite("frame%d.png" % count, image)         
     success,image = vidcap.read()
     print('Read a new frame: ', success)
     count += 1
+
   os.chdir("..")
   vidcap.release()
   os.remove(vidName)
+  time.sleep(.1)
+  os.system('cls' if os.name == 'nt' else 'clear')
 
 def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   binary = ""
@@ -101,7 +106,6 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
 
   for res in binaryList:
     binary += res.get()
-
   return binary 
 
 def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues):
@@ -125,8 +129,9 @@ def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, 
 
         pixelNum = len(pixelGroup)
         averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum]
-        
+
         distances = [(((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)) for color in cleanColorValues]
+
         binary+=(colorKeys[colorValues.index(colorValues[distances.index(min(distances))])])
     os.remove(image)
     return binary  
@@ -151,7 +156,7 @@ if __name__ == "__main__":
   HEIGHT = 1080
   COMPRESSIONFACTOR = 2
   starttime = time.time()
-  bitsToImg(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  bitsToImgs(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
   imgsToVid(IMGDIR, VIDNAME)
   # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
   vidToPics(VIDNAME)
