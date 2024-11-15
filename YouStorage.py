@@ -9,77 +9,27 @@ import time
 import sys
 import itertools
 import threading
+import curses
 
 def dot12():
     global animationFinished
     for c in itertools.cycle([
-      "⢀⠀ ",
-			"⡀⠀ ",
-			"⠄⠀ ",
-			"⢂⠀ ",
-			"⡂⠀ ",
-			"⠅⠀ ",
-			"⢃⠀ ",
-			"⡃⠀ ",
-			"⠍⠀ ",
-			"⢋⠀ ",
-			"⡋⠀ ",
-			"⠍⠁ ",
-			"⢋⠁ ",
-			"⡋⠁ ",
-			"⠍⠉ ",
-			"⠋⠉ ",
-			"⠋⠉ ",
-			"⠉⠙ ",
-			"⠉⠙ ",
-			"⠉⠩ ",
-			"⠈⢙ ",
-			"⠈⡙ ",
-			"⢈⠩ ",
-			"⡀⢙ ",
-			"⠄⡙ ",
-			"⢂⠩ ",
-			"⡂⢘ ",
-			"⠅⡘ ",
-			"⢃⠨ ",
-			"⡃⢐ ",
-			"⠍⡐ ",
-			"⢋⠠ ",
-			"⡋⢀ ",
-			"⠍⡁ ",
-			"⢋⠁ ",
-			"⡋⠁ ",
-			"⠍⠉ ",
-			"⠋⠉ ",
-			"⠋⠉ ",
-			"⠉⠙ ",
-			"⠉⠙ ",
-			"⠉⠩ ",
-			"⠈⢙ ",
-			"⠈⡙ ",
-			"⠈⠩ ",
-			"⠀⢙ ",
-			"⠀⡙ ",
-			"⠀⠩ ",
-			"⠀⢘ ",
-			"⠀⡘ ",
-			"⠀⠨ ",
-			"⠀⢐ ",
-			"⠀⡐ ",
-			"⠀⠠ ",
-			"⠀⢀ ",
-			"⠀⡀ "
+      "⢀⠀ ","⡀⠀ ","⠄⠀ ","⢂⠀ ","⡂⠀ ","⠅⠀ ","⢃⠀ ","⡃⠀ ","⠍⠀ ","⢋⠀ ","⡋⠀ ","⠍⠁ ","⢋⠁ ","⡋⠁ ","⠍⠉ ","⠋⠉ ",
+			"⠋⠉ ","⠉⠙ ","⠉⠙ ","⠉⠩ ","⠈⢙ ","⠈⡙ ","⢈⠩ ","⡀⢙ ","⠄⡙ ","⢂⠩ ","⡂⢘ ","⠅⡘ ","⢃⠨ ","⡃⢐ ","⠍⡐ ","⢋⠠ ",
+			"⡋⢀ ","⠍⡁ ","⢋⠁ ","⡋⠁ ","⠍⠉ ","⠋⠉ ","⠋⠉ ","⠉⠙ ","⠉⠙ ","⠉⠩ ","⠈⢙ ","⠈⡙ ","⠈⠩ ","⠀⢙ ","⠀⡙ ","⠀⠩ ",
+			"⠀⢘ ","⠀⡘ ","⠀⠨ ","⠀⢐ ","⠀⡐ ","⠀⠠ ","⠀⢀ ","⠀⡀ "
       ]):
         if animationFinished:
             break
         sys.stdout.write('\rloading ' + c)
         sys.stdout.flush()
-        time.sleep(0.04)
+        time.sleep(0.03)
 
 def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
     text = f.read()
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
+  # os.remove(filedir)
   
 def binaryToText(binary, n):
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
@@ -202,12 +152,103 @@ def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, 
     os.remove(image)
     return binary  
 
-if __name__ == "__main__":
-  TEXT = "bible.txt"
-  IMGDIR = "img"
-  VIDNAME = "bible.avi"
-  SAVEPATH = "."
+def choose(stdscr, question, options):
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.curs_set(0)
 
+    current_row = 0
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, question, curses.A_BOLD)
+        for idx, option in enumerate(options):
+            color_pair = 2 if idx == current_row else 1
+            stdscr.attron(curses.color_pair(color_pair))
+            stdscr.addstr(idx + 1, 0, f"{'>' if idx == current_row else ' '} {option}")
+            stdscr.attroff(curses.color_pair(color_pair))
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(options) - 1:
+            current_row += 1
+        elif key == ord("\n"):
+            break
+
+    return current_row
+
+def main(colors, width, height, compressionFactor, imgDir):
+  global animationFinished
+  print(r'_____.___.             _________ __                                      ')
+  print(r'\__  |   | ____  __ __/   _____//  |_  ________________     ____   ____  ')
+  print(r' /   |   |/  _ \|  |  \_____  \\   __\/  _ \_  __ \__  \   / ___\_/ __ \ ')
+  print(r' \____   (  <_> )  |  /        \|  | (  <_> )  | \// __ \_/ /_/  >  ___/ ')
+  print(r' / ______|\____/|____/_______  /|__|  \____/|__|  (____  /\___  / \___  >')
+  print(r' \/                          \/                        \//_____/      \/ ')
+  time.sleep(4)
+
+  print("Welcome to YouStorage! This program will convert any text file into a video file and vice versa.")
+  time.sleep(3)
+  print("This program is not responsible for any loss of data. Please make sure to back up your files before using this program.")
+  time.sleep(3)
+  print("Please make sure to have ffmpeg installed on your computer before using this program.")
+  time.sleep(3)
+  os.system('cls' if os.name == 'nt' else 'clear')
+  answer = curses.wrapper(lambda stdscr: choose(stdscr, "What would you like to do" , ["Convert text to video", "Convert video to text", "download a youtube video"]))
+
+  if answer == 0:
+    print("WARNING! This will delete the original text file. Make sure to back up your files before proceeding.")
+    time.sleep(5)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    textdir = input("Please enter the directory of the text file you would like to convert: ")
+    os.system('cls' if os.name == 'nt' else 'clear')
+    vidname = input("Please enter the name of the video file you would like to save: ")
+    vidname = vidname + ".avi"
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+    animationFinished = False
+    t = threading.Thread(target=dot12, )
+    t.start()
+
+    bitsToImgs(textToBinary(textdir), colors, width, height, compressionFactor)
+    imgsToVid(imgDir, vidname)
+
+    animationFinished = True
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Conversion complete!")
+
+  elif answer == 1:
+    print("WARNING! This will delete the original video file. Make sure to back up your files before proceeding.")
+    time.sleep(5)
+    vidname = input("Please enter the name of the video file and the file extension you would like to convert: ")
+    os.system('cls' if os.name == 'nt' else 'clear')
+    textname = input("Please enter the name of the text file you would like to save: ")
+    textname = textname + ".txt"
+    os.system('cls' if os.name == 'nt' else 'clear')  
+
+    animationFinished = False
+    t = threading.Thread(target=dot12, )
+    t.start()
+
+    vidToPics(vidname)
+    with open(textname, "w", encoding="utf-8") as f:
+      f.write(binaryToText(picsToBinary(imgDir, height, width, compressionFactor, colors), 8))
+
+    animationFinished = True
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Conversion complete!")
+  
+  elif answer == 2:
+    url = input("Please enter the url of the youtube video you would like to download: ")
+    youtubeToVid(url, ".")
+
+
+   
+
+if __name__ == "__main__":
+  IMGDIR = "img"
   COLORS = {
      "000" : "#000000",
      "001" : "#FF0000",
@@ -219,24 +260,26 @@ if __name__ == "__main__":
      "111" : "#FFFFFF",
 
   }
-
   WIDTH = 1920
   HEIGHT = 1080
   COMPRESSIONFACTOR = 2
 
   animationFinished = False
 
-  t = threading.Thread(target=dot12, )
-  t.start()
+  main(COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, IMGDIR)
 
-  starttime = time.time()
-  bitsToImgs(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
-  imgsToVid(IMGDIR, VIDNAME)
-  # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  vidToPics(VIDNAME)
-  with open("newBible.txt", "w", encoding="utf-8") as f:
-    f.write(binaryToText(picsToBinary(IMGDIR, HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS), 8))
 
-  animationFinished = True
-  os.system('cls' if os.name == 'nt' else 'clear')
-  print("Time taken: ", time.time() - starttime)
+  # t = threading.Thread(target=dot12, )
+  # t.start()
+
+  # starttime = time.time()
+  # bitsToImgs(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
+  # imgsToVid(IMGDIR, VIDNAME)
+  # # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
+  # vidToPics(VIDNAME)
+  # with open("newBible.txt", "w", encoding="utf-8") as f:
+  #   f.write(binaryToText(picsToBinary(IMGDIR, HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS), 8))
+
+  # animationFinished = True
+  # os.system('cls' if os.name == 'nt' else 'clear')
+  # print("Time taken: ", time.time() - starttime)
