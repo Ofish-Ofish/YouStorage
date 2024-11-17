@@ -28,7 +28,7 @@ def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
     text = f.read()
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
-  # os.remove(filedir)
+
   
 def binaryToText(binary, n):
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
@@ -201,13 +201,12 @@ def main(colors, width, height, compressionFactor, imgDir):
   answer = curses.wrapper(lambda stdscr: choose(stdscr, "What would you like to do" , ["Convert text to video", "Convert video to text", "download a youtube video"]))
 
   if answer == 0:
-    print("WARNING! This will delete the original text file. Make sure to back up your files before proceeding.")
-    time.sleep(5)
-    os.system('cls' if os.name == 'nt' else 'clear')
     textdir = input("Please enter the path of the text file you would like to convert: ")
     os.system('cls' if os.name == 'nt' else 'clear')
     vidname = input("Please enter the name of the video file you would like to save: ")
     vidname = vidname + ".avi"
+    os.system('cls' if os.name == 'nt' else 'clear')
+    answer = curses.wrapper(lambda stdscr: choose(stdscr, "would you like this program to delete the original text file" , ["yes", "no"]))
     os.system('cls' if os.name == 'nt' else 'clear')
 
     animationFinished = False
@@ -223,6 +222,9 @@ def main(colors, width, height, compressionFactor, imgDir):
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
+    if answer == 0:
+      os.remove(textdir)
+
     print("Conversion complete!")
 
   elif answer == 1:
