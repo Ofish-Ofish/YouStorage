@@ -20,7 +20,7 @@ YouStorage is a unique project that converts text files into video files and vic
 
 ## Project Explanation 📽️
 
-YouStorage converts text files into video files by encoding the text into binary and then representing that binary data as colored pixels in images. These images are then compiled into a video. The process significantly increases the file size, potentially by up to 40,000%. The project also supports converting videos back into text files by decoding the binary data from the video frames. additonally the project supports downloading videos from youtube for test purposes.
+YouStorage converts text files into video files by encoding the text into binary and then representing that binary data as colored pixels in images. These images are then compiled into a video. The process significantly increases the file size, potentially by up to 40000%. The project also supports converting videos back into text files by decoding the binary data from the video frames. additonally the project supports downloading videos from youtube for test purposes.
 
 ## Dependencies 📦
 
