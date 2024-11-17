@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw
-import re
 import os
 import cv2 as cv
 from math import ceil
@@ -69,7 +68,7 @@ def bitsToImgs(binary, colors, width, height, compressionFactor):
 
 def imgsToVid(imgFolder, vidName):
   images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
-  video = cv.VideoWriter(vidName, 0, 1, (WIDTH, HEIGHT))  
+  video = cv.VideoWriter(vidName, 0, 60, (WIDTH, HEIGHT))  
 
   for image in images:  
     video.write(cv.imread(os.path.join(imgFolder, image))) 
@@ -78,10 +77,10 @@ def imgsToVid(imgFolder, vidName):
   cv.destroyAllWindows() 
   video.release()
 
-def youtubeToVid(link, savePath):
+def youtubeToVid(link, savePath, vidname):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
-        'outtmpl': f'{savePath}/%(title)s.%(ext)s',  
+        'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
@@ -121,7 +120,8 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
 
   for res in binaryList:
     binary += res.get()
-
+  
+  os.chdir("..")
   return binary 
 
 def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues):
@@ -179,15 +179,14 @@ def choose(stdscr, question, options):
 
     return current_row
 
-def main(colors, width, height, compressionFactor, imgDir):
-  global animationFinished
+def intro():
   print(r'_____.___.             _________ __                                      ')
   print(r'\__  |   | ____  __ __/   _____//  |_  ________________     ____   ____  ')
   print(r' /   |   |/  _ \|  |  \_____  \\   __\/  _ \_  __ \__  \   / ___\_/ __ \ ')
   print(r' \____   (  <_> )  |  /        \|  | (  <_> )  | \// __ \_/ /_/  >  ___/ ')
   print(r' / ______|\____/|____/_______  /|__|  \____/|__|  (____  /\___  / \___  >')
   print(r' \/                          \/                        \//_____/      \/ ')
-  time.sleep(4)
+  time.sleep(2)
 
   print("Welcome to YouStorage! This program will convert any text file into a video file and vice versa.")
   time.sleep(3)
@@ -196,13 +195,16 @@ def main(colors, width, height, compressionFactor, imgDir):
   print("Please make sure to have ffmpeg installed on your computer before using this program.")
   time.sleep(3)
   os.system('cls' if os.name == 'nt' else 'clear')
+
+def main(colors, width, height, compressionFactor, imgDir):
+  global animationFinished
   answer = curses.wrapper(lambda stdscr: choose(stdscr, "What would you like to do" , ["Convert text to video", "Convert video to text", "download a youtube video"]))
 
   if answer == 0:
     print("WARNING! This will delete the original text file. Make sure to back up your files before proceeding.")
     time.sleep(5)
     os.system('cls' if os.name == 'nt' else 'clear')
-    textdir = input("Please enter the directory of the text file you would like to convert: ")
+    textdir = input("Please enter the path of the text file you would like to convert: ")
     os.system('cls' if os.name == 'nt' else 'clear')
     vidname = input("Please enter the name of the video file you would like to save: ")
     vidname = vidname + ".avi"
@@ -211,9 +213,13 @@ def main(colors, width, height, compressionFactor, imgDir):
     animationFinished = False
     t = threading.Thread(target=dot12, )
     t.start()
-
-    bitsToImgs(textToBinary(textdir), colors, width, height, compressionFactor)
-    imgsToVid(imgDir, vidname)
+    try:
+      bitsToImgs(textToBinary(textdir), colors, width, height, compressionFactor)
+      imgsToVid(imgDir, vidname)
+    except:
+      animationFinished = True
+      print("error encountered try again")
+      quit()
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -222,7 +228,8 @@ def main(colors, width, height, compressionFactor, imgDir):
   elif answer == 1:
     print("WARNING! This will delete the original video file. Make sure to back up your files before proceeding.")
     time.sleep(5)
-    vidname = input("Please enter the name of the video file and the file extension you would like to convert: ")
+    
+    vidname = input("Please enter the path of the video file you would like to convert: ")
     os.system('cls' if os.name == 'nt' else 'clear')
     textname = input("Please enter the name of the text file you would like to save: ")
     textname = textname + ".txt"
@@ -232,9 +239,14 @@ def main(colors, width, height, compressionFactor, imgDir):
     t = threading.Thread(target=dot12, )
     t.start()
 
-    vidToPics(vidname)
-    with open(textname, "w", encoding="utf-8") as f:
-      f.write(binaryToText(picsToBinary(imgDir, height, width, compressionFactor, colors), 8))
+    try:
+      vidToPics(vidname)
+      with open(textname, "w", encoding="utf-8") as f:
+        f.write(binaryToText(picsToBinary(imgDir, height, width, compressionFactor, colors), 8))
+    except:
+      animationFinished = True
+      print("error encountered try again")
+      quit()
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -242,10 +254,10 @@ def main(colors, width, height, compressionFactor, imgDir):
   
   elif answer == 2:
     url = input("Please enter the url of the youtube video you would like to download: ")
-    youtubeToVid(url, ".")
-
-
-   
+    os.system('cls' if os.name == 'nt' else 'clear')  
+    vidname = input("Please enter the name of the video file you would like to save: ")
+    os.system('cls' if os.name == 'nt' else 'clear')  
+    youtubeToVid(url, ".", vidname)
 
 if __name__ == "__main__":
   IMGDIR = "img"
@@ -262,24 +274,19 @@ if __name__ == "__main__":
   }
   WIDTH = 1920
   HEIGHT = 1080
-  COMPRESSIONFACTOR = 2
+  COMPRESSIONFACTOR = 10
 
   animationFinished = False
+  running = True
 
-  main(COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, IMGDIR)
+  os.system('cls' if os.name == 'nt' else 'clear')
+  intro()
 
-
-  # t = threading.Thread(target=dot12, )
-  # t.start()
-
-  # starttime = time.time()
-  # bitsToImgs(textToBinary(TEXT), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR)
-  # imgsToVid(IMGDIR, VIDNAME)
-  # # youtubeToVid("https://www.youtube.com/watch?v=2naim9F4010", SAVEPATH)
-  # vidToPics(VIDNAME)
-  # with open("newBible.txt", "w", encoding="utf-8") as f:
-  #   f.write(binaryToText(picsToBinary(IMGDIR, HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS), 8))
-
-  # animationFinished = True
-  # os.system('cls' if os.name == 'nt' else 'clear')
-  # print("Time taken: ", time.time() - starttime)
+  while running:
+    main(COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, IMGDIR)
+    time.sleep(2)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    answer = curses.wrapper(lambda stdscr: choose(stdscr, "would you like to continue using YouStorage" , ["yes", "no"]))
+    if answer == 1:
+       running = False
+    os.system('cls' if os.name == 'nt' else 'clear')
