@@ -2,11 +2,11 @@
 
 ## Table of Contents
 
-1. [Introduction](#introduction) 📝
-2. [Warnings](#warnings) ⚠️
-3. [Project Explanation](#project-explanation) 📽️
-4. [Dependencies](#dependencies) 📦
-5. [How to Contribute](#how-to-contribute) ✨
+1. [Introduction](#introduction)
+2. [Warnings](#warnings)
+3. [Project Explanation](#project-explanation)
+4. [Dependencies](#dependencies)
+5. [How to Contribute](#how-to-contribute)
 
 ## Introduction 📝
 
