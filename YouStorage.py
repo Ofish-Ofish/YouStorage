@@ -28,43 +28,41 @@ def textToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
     text = f.read()
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
-
-  
+ 
 def binaryToText(binary, n):
   byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
   intList = [int(b, 2) for b in byteList]
   return bytes(intList).decode('utf-8', errors='replace')
   
 def bitsToImgs(binary, colors, width, height, compressionFactor):
-    threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
-    threeBitLen = len(threeBit)
+  threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
+  threeBitLen = len(threeBit)
 
-    os.makedirs("img", exist_ok=True)
-    os.chdir("img")
+  os.makedirs("img", exist_ok=True)
+  os.chdir("img")
 
-    scaledWidth = width // compressionFactor
-    scaledHeight = height // compressionFactor
-    pixelsPerFrame = scaledWidth * scaledHeight
+  scaledWidth = width // compressionFactor
+  scaledHeight = height // compressionFactor
+  pixelsPerFrame = scaledWidth * scaledHeight
 
-    for i in range(ceil(threeBitLen/pixelsPerFrame)):
-      img = Image.new('RGB', (width, height), '#808080')
-      draw = ImageDraw.Draw(img)
+  for i in range(ceil(threeBitLen/pixelsPerFrame)):
+    img = Image.new('RGB', (width, height), '#808080')
+    draw = ImageDraw.Draw(img)
 
-      for j in range(scaledHeight):
-        for k in range(scaledWidth):
-          idx = i * pixelsPerFrame + j * scaledWidth + k
+    for j in range(scaledHeight):
+      for k in range(scaledWidth):
+        idx = i * pixelsPerFrame + j * scaledWidth + k
 
-          if idx < threeBitLen:
-            color = colors.get(threeBit[idx], "#808080")
-            x = k * compressionFactor
-            y = j * compressionFactor
-            draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
-          else:
-            break
-      img.save(f'myImg{i}.png')
+        if idx < threeBitLen:
+          color = colors.get(threeBit[idx], "#808080")
+          x = k * compressionFactor
+          y = j * compressionFactor
+          draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
+        else:
+          break
+    img.save(f'myImg{i}.png')
 
-    os.chdir("..")
-    time.sleep(.1)
+  os.chdir("..")
 
 def imgsToVid(imgFolder, vidName):
   images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
@@ -78,12 +76,12 @@ def imgsToVid(imgFolder, vidName):
   video.release()
 
 def youtubeToVid(link, savePath, vidname):
-    ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
-        'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([link])
+  ydl_opts = {
+     'format': 'bestvideo+bestaudio/best',
+      'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
+  }
+  with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+      ydl.download([link])
 
 def vidToPics(vidName):
   vidcap = cv.VideoCapture(vidName)
@@ -125,32 +123,32 @@ def picsToBinary(imgFolder, height, width, compressionFactor, colors):
   return binary 
 
 def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues):
-    im = Image.open(image) 
-    px = im.load()
-    binary = ""
+  im = Image.open(image) 
+  px = im.load()
+  binary = ""
 
-    for j in range(scaledHeight):
-      for k in range(scaledWidth):
-        pixelGroup = []
-        for m in range(compressionFactor):
-          for n in range(compressionFactor):
-            pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
+  for j in range(scaledHeight):
+    for k in range(scaledWidth):
+      pixelGroup = []
+      for m in range(compressionFactor):
+        for n in range(compressionFactor):
+          pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
 
-        avgR, avgG, avgB = 0, 0, 0
+      avgR, avgG, avgB = 0, 0, 0
 
-        for pixel in pixelGroup:
-          avgR += pixel[0]
-          avgG += pixel[1]
-          avgB += pixel[2]
+      for pixel in pixelGroup:
+        avgR += pixel[0]
+        avgG += pixel[1]
+        avgB += pixel[2]
 
-        pixelNum = len(pixelGroup)
-        averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum]
+      pixelNum = len(pixelGroup)
+      averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum]
 
-        distances = [(((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)) for color in cleanColorValues]
+      distances = [(((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)) for color in cleanColorValues]
 
-        binary+=(colorKeys[colorValues.index(colorValues[distances.index(min(distances))])])
-    os.remove(image)
-    return binary  
+      binary+=(colorKeys[colorValues.index(colorValues[distances.index(min(distances))])])
+  os.remove(image)
+  return binary  
 
 def choose(stdscr, question, options):
     curses.start_color()
@@ -196,12 +194,20 @@ def intro():
   time.sleep(3)
   os.system('cls' if os.name == 'nt' else 'clear')
 
+def validPath(path):
+  if not os.path.exists(path):
+    raise FileNotFoundError(f"The path {path} does not exist.")
+  if not os.access(path, os.R_OK):
+    raise PermissionError(f"The file {path} is not permitted to be used.")
+  return True
+
 def main(colors, width, height, compressionFactor, imgDir):
   global animationFinished
   answer = curses.wrapper(lambda stdscr: choose(stdscr, "What would you like to do" , ["Convert text to video", "Convert video to text", "download a youtube video"]))
 
   if answer == 0:
     textdir = input("Please enter the path of the text file you would like to convert: ")
+    validPath(textdir)
     os.system('cls' if os.name == 'nt' else 'clear')
     vidname = input("Please enter the name of the video file you would like to save: ")
     vidname = vidname + ".avi"
@@ -212,6 +218,7 @@ def main(colors, width, height, compressionFactor, imgDir):
     animationFinished = False
     t = threading.Thread(target=dot12, )
     t.start()
+
     try:
       bitsToImgs(textToBinary(textdir), colors, width, height, compressionFactor)
       imgsToVid(imgDir, vidname)
@@ -222,6 +229,7 @@ def main(colors, width, height, compressionFactor, imgDir):
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
+
     if answer == 0:
       os.remove(textdir)
 
@@ -232,6 +240,7 @@ def main(colors, width, height, compressionFactor, imgDir):
     time.sleep(5)
     
     vidname = input("Please enter the path of the video file you would like to convert: ")
+    validPath(vidname)
     os.system('cls' if os.name == 'nt' else 'clear')
     textname = input("Please enter the name of the text file you would like to save: ")
     textname = textname + ".txt"
@@ -259,7 +268,11 @@ def main(colors, width, height, compressionFactor, imgDir):
     os.system('cls' if os.name == 'nt' else 'clear')  
     vidname = input("Please enter the name of the video file you would like to save: ")
     os.system('cls' if os.name == 'nt' else 'clear')  
-    youtubeToVid(url, ".", vidname)
+    try:
+      youtubeToVid(url, ".", vidname)
+    except:
+      print("error encountered try again")
+      quit()
 
 if __name__ == "__main__":
   IMGDIR = "img"

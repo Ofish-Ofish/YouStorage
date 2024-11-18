@@ -27,6 +27,7 @@ YouStorage converts text files into video files by encoding the text into binary
 To run YouStorage, you need to install the following libraries:
 
 - `Pillow`
+- `pytest`
 - `opencv-python`
 - `yt-dlp`
 - `curses` (for Unix-based systems)
