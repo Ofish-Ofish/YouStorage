@@ -77,8 +77,8 @@ def imgsToVid(imgFolder, vidName):
 
 def youtubeToVid(link, savePath, vidname):
   ydl_opts = {
-     'format': 'bestvideo+bestaudio/best',
-      'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
+    'format': 'bestvideo+bestaudio/best',
+    'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
   }
   with yt_dlp.YoutubeDL(ydl_opts) as ydl:
       ydl.download([link])
