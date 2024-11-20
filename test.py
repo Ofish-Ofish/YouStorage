@@ -11,8 +11,16 @@ import threading
 import curses
 
 def makeFreqDict(text):
+  freq = {}
+  for char in text:
+    if not char in freq:
+      freq[char] = 0
+    freq[char] += 1
+  return freq
 
 def makeHeap(freq):
+  heap = []
+  
   
 def mergeCodes():
 
