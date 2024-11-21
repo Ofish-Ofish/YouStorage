@@ -175,6 +175,7 @@ class HuffmanCoding:
 	
 path = "bible.txt"
 h = HuffmanCoding(path)
+
 output_path = h.compress()
 
-h.decompress("decompress.txt")
+decode_path = h.decompress(output_path)
