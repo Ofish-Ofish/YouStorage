@@ -103,9 +103,8 @@ class HuffmanCoding:
 
 	def compress(self):
 		filename, file_extension = os.path.splitext(self.path)
-		output_path = filename + ".bin"
 
-		with open(self.path, 'r+') as file, open(output_path, 'wb') as output:
+		with open(self.path, 'r+') as file:
 			text = file.read()
 			text = text.rstrip()
 
@@ -116,66 +115,96 @@ class HuffmanCoding:
 
 			encoded_text = self.get_encoded_text(text)
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
+			return [padded_encoded_text, self.reverse_mapping]
 
-			b = self.get_byte_array(padded_encoded_text)
-			output.write(bytes(b))
+		# 	b = self.get_byte_array(padded_encoded_text)
+		# 	output.write(bytes(b))
 
-		print("Compressed")
-		return output_path
+		# print("Compressed")
+		#return output_path
+
 
 
 	""" functions for decompression: """
 
 
-	def remove_padding(self, padded_encoded_text):
-		padded_info = padded_encoded_text[:8]
-		extra_padding = int(padded_info, 2)
+	# def remove_padding(self, padded_encoded_text):
+	# 	padded_info = padded_encoded_text[:8]
+	# 	extra_padding = int(padded_info, 2)
 
-		padded_encoded_text = padded_encoded_text[8:] 
-		encoded_text = padded_encoded_text[:-1*extra_padding]
+	# 	padded_encoded_text = padded_encoded_text[8:] 
+	# 	encoded_text = padded_encoded_text[:-1*extra_padding]
 
-		return encoded_text
+	# 	return encoded_text
 
-	def decode_text(self, encoded_text):
-		current_code = ""
-		decoded_text = ""
+	# def decode_text(self, encoded_text, reverse_mapping):
+	# 	current_code = ""
+	# 	decoded_text = ""
 
-		for bit in encoded_text:
-			current_code += bit
-			if(current_code in self.reverse_mapping):
-				character = self.reverse_mapping[current_code]
-				decoded_text += character
-				current_code = ""
+	# 	for bit in encoded_text:
+	# 		current_code += bit
+	# 		if(current_code in reverse_mapping):
+	# 			character = reverse_mapping[current_code]
+	# 			decoded_text += character
+	# 			current_code = ""
 
-		return decoded_text
+	# 	return decoded_text
 
 
-	def decompress(self, input_path):
-		filename, file_extension = os.path.splitext(self.path)
-		output_path = filename + "_decompressed" + ".txt"
+	# def decompress(self, bit_string, output_path, reverse_mapping):
+	# 	with open(output_path, 'w') as output:
 
-		with open(input_path, 'rb') as file, open(output_path, 'w') as output:
-			bit_string = ""
+	# 		encoded_text = self.remove_padding(bit_string)
 
-			byte = file.read(1)
-			while(len(byte) > 0):
-				byte = ord(byte)
-				bits = bin(byte)[2:].rjust(8, '0')
-				bit_string += bits
-				byte = file.read(1)
-
-			encoded_text = self.remove_padding(bit_string)
-
-			decompressed_text = self.decode_text(encoded_text)
+	# 		decompressed_text = self.decode_text(encoded_text, reverse_mapping)
 			
-			output.write(decompressed_text)
+	# 		output.write(decompressed_text)
 
-		print("Decompressed")
-		return output_path
-	
+	# 	print("Decompressed")
+	# 	return output_path
+
+
+
+
+def remove_padding(padded_encoded_text):
+	padded_info = padded_encoded_text[:8]
+	extra_padding = int(padded_info, 2)
+
+	padded_encoded_text = padded_encoded_text[8:] 
+	encoded_text = padded_encoded_text[:-1*extra_padding]
+
+	return encoded_text
+
+def decode_text(encoded_text, reverse_mapping):
+	current_code = ""
+	decoded_text = ""
+
+	for bit in encoded_text:
+		current_code += bit
+		if(current_code in reverse_mapping):
+			character = reverse_mapping[current_code]
+			decoded_text += character
+			current_code = ""
+
+	return decoded_text
+
+
+def decompress( bit_string, output_path, reverse_mapping):
+  with open(output_path, 'w') as output:
+
+    encoded_text = remove_padding(bit_string)
+
+    decompressed_text = decode_text(encoded_text, reverse_mapping)
+    
+    output.write(decompressed_text)
+
+  print("Decompressed")
+  return output_path
+
 path = "bible.txt"
 h = HuffmanCoding(path)
 
-output_path = h.compress()
+output, reverse_mapping  = h.compress()[0], h.compress()[1]
 
-decode_path = h.decompress(output_path)
+decode_path = decompress(output , "decompressed.txt", reverse_mapping)
+
