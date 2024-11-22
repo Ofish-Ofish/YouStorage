@@ -1,5 +1,15 @@
 import heapq
 import os
+import cv2 as cv
+from math import ceil
+import yt_dlp
+from multiprocessing import Pool, cpu_count
+import time
+import sys
+import itertools
+import threading
+import curses
+from PIL import Image, ImageDraw
 
 class HuffmanCoding:
 	def __init__(self, path):
@@ -15,7 +25,6 @@ class HuffmanCoding:
 			self.left = None
 			self.right = None
 
-		# defining comparators less_than and equals
 		def __lt__(self, other):
 			return self.freq < other.freq
 
@@ -25,8 +34,6 @@ class HuffmanCoding:
 			if(not isinstance(other, HeapNode)):
 				return False
 			return self.freq == other.freq
-
-	# functions for compression:
 
 	def make_frequency_dict(self, text):
 		frequency = {}
@@ -117,55 +124,6 @@ class HuffmanCoding:
 			padded_encoded_text = self.pad_encoded_text(encoded_text)
 			return [padded_encoded_text, self.reverse_mapping]
 
-		# 	b = self.get_byte_array(padded_encoded_text)
-		# 	output.write(bytes(b))
-
-		# print("Compressed")
-		#return output_path
-
-
-
-	""" functions for decompression: """
-
-
-	# def remove_padding(self, padded_encoded_text):
-	# 	padded_info = padded_encoded_text[:8]
-	# 	extra_padding = int(padded_info, 2)
-
-	# 	padded_encoded_text = padded_encoded_text[8:] 
-	# 	encoded_text = padded_encoded_text[:-1*extra_padding]
-
-	# 	return encoded_text
-
-	# def decode_text(self, encoded_text, reverse_mapping):
-	# 	current_code = ""
-	# 	decoded_text = ""
-
-	# 	for bit in encoded_text:
-	# 		current_code += bit
-	# 		if(current_code in reverse_mapping):
-	# 			character = reverse_mapping[current_code]
-	# 			decoded_text += character
-	# 			current_code = ""
-
-	# 	return decoded_text
-
-
-	# def decompress(self, bit_string, output_path, reverse_mapping):
-	# 	with open(output_path, 'w') as output:
-
-	# 		encoded_text = self.remove_padding(bit_string)
-
-	# 		decompressed_text = self.decode_text(encoded_text, reverse_mapping)
-			
-	# 		output.write(decompressed_text)
-
-	# 	print("Decompressed")
-	# 	return output_path
-
-
-
-
 def remove_padding(padded_encoded_text):
 	padded_info = padded_encoded_text[:8]
 	extra_padding = int(padded_info, 2)
@@ -188,7 +146,6 @@ def decode_text(encoded_text, reverse_mapping):
 
 	return decoded_text
 
-
 def decompress( bit_string, output_path, reverse_mapping):
   with open(output_path, 'w') as output:
 
@@ -201,10 +158,84 @@ def decompress( bit_string, output_path, reverse_mapping):
   print("Decompressed")
   return output_path
 
-path = "bible.txt"
-h = HuffmanCoding(path)
+def textToBinary(text):
+    return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
 
+def bitsToImgs(binary, colors, width, height, compressionFactor, picnames):
+  threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
+  threeBitLen = len(threeBit)
+
+  os.makedirs("img", exist_ok=True)
+  os.chdir("img")
+
+  scaledWidth = width // compressionFactor
+  scaledHeight = height // compressionFactor
+  pixelsPerFrame = scaledWidth * scaledHeight
+
+  for i in range(ceil(threeBitLen/pixelsPerFrame)):
+    img = Image.new('RGB', (width, height), '#808080')
+    draw = ImageDraw.Draw(img)
+
+    for j in range(scaledHeight):
+      for k in range(scaledWidth):
+        idx = i * pixelsPerFrame + j * scaledWidth + k
+
+        if idx < threeBitLen:
+          color = colors.get(threeBit[idx], "#808080")
+          x = k * compressionFactor
+          y = j * compressionFactor
+          draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
+        else:
+          break
+    img.save(f'{picnames}{i}.png')
+
+  os.chdir("..")
+
+def imgsToVid(imgFolder, vidName):
+  images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
+  video = cv.VideoWriter(vidName, 0, 60, (WIDTH, HEIGHT))  
+
+  for image in images:  
+    video.write(cv.imread(os.path.join(imgFolder, image))) 
+    os.remove(f"img/{image}")
+
+  cv.destroyAllWindows() 
+  video.release()
+
+IMGDIR = "img"
+COLORS = {
+    "000" : "#000000",
+    "001" : "#FF0000",
+    "010" : "#00FF00",
+    "011" : "#FFFF00",
+    "100" : "#0000FF",
+    "101" : "#FF00FF",
+    "110" : "#00FFFF",
+    "111" : "#FFFFFF",
+
+}
+WIDTH = 1920
+HEIGHT = 1080
+COMPRESSIONFACTOR = 10
+
+animationFinished = False
+running = True
+
+textdir = "bible.txt"
+
+### text to vid ###
+h = HuffmanCoding(textdir)
 output, reverse_mapping  = h.compress()[0], h.compress()[1]
+reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
+bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping")
+bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output")
+imgsToVid(IMGDIR, "bible.avi")
+
+#print(textToBinary(str(reverse_mapping)))
+
+# bitsToImgs(textFileToBinary(textdir), colors, width, height, compressionFactor)
+# imgsToVid(imgDir, vidname)
+
 
 decode_path = decompress(output , "decompressed.txt", reverse_mapping)
 

@@ -24,7 +24,7 @@ def dot12():
         sys.stdout.flush()
         time.sleep(0.03)
 
-def textToBinary(filedir):
+def textFileToBinary(filedir):
   with open(filedir, "r", encoding='utf-8') as f:
     text = f.read()
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
@@ -206,7 +206,7 @@ def main(colors, width, height, compressionFactor, imgDir):
   answer = curses.wrapper(lambda stdscr: choose(stdscr, "What would you like to do" , ["Convert text to video", "Convert video to text", "download a youtube video"]))
 
   if answer == 0:
-    textdir = input("Please enter the path of the text file you would like to convert: ")
+    textdir = input("Please enter the text file and file extension you would like to convert: ")
     validPath(textdir)
     os.system('cls' if os.name == 'nt' else 'clear')
     vidname = input("Please enter the name of the video file you would like to save: ")
@@ -220,7 +220,7 @@ def main(colors, width, height, compressionFactor, imgDir):
     t.start()
 
     try:
-      bitsToImgs(textToBinary(textdir), colors, width, height, compressionFactor)
+      bitsToImgs(textFileToBinary(textdir), colors, width, height, compressionFactor)
       imgsToVid(imgDir, vidname)
     except:
       animationFinished = True
