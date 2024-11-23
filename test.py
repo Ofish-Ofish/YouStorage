@@ -161,12 +161,12 @@ def decompress( bit_string, output_path, reverse_mapping):
 def textToBinary(text):
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
 
-def bitsToImgs(binary, colors, width, height, compressionFactor, picnames):
+def bitsToImgs(binary, colors, width, height, compressionFactor, picnames, imageSavePath):
   threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
   threeBitLen = len(threeBit)
 
-  os.makedirs("img", exist_ok=True)
-  os.chdir("img")
+  os.makedirs(imageSavePath, exist_ok=True)
+  
 
   scaledWidth = width // compressionFactor
   scaledHeight = height // compressionFactor
@@ -187,20 +187,32 @@ def bitsToImgs(binary, colors, width, height, compressionFactor, picnames):
           draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
         else:
           break
-    img.save(f'{picnames}{i}.png')
+    img.save(f'{imageSavePath}/{picnames}{i}.png')
 
-  os.chdir("..")
+def breakPic(width, height):
+	os.chdir("img")
+	img = Image.new('RGB', (width, height), '#808080')
+	img.save(f"breakPic.png")
+	os.chdir("..")
 
-def imgsToVid(imgFolder, vidName):
-  images = [f"myimg{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
-  video = cv.VideoWriter(vidName, 0, 60, (WIDTH, HEIGHT))  
+def imgsToVid(vidName):
+	images = [f"output{n}.png" for n in list(range(0,len(os.listdir("img/textPics"))))]
+	reverseMapping = [f"reverseMapping{n}.png" for n in list(range(0,len(os.listdir("img/reverseMapping"))))]
+	video = cv.VideoWriter(vidName, 0, 60, (WIDTH, HEIGHT))  
 
-  for image in images:  
-    video.write(cv.imread(os.path.join(imgFolder, image))) 
-    os.remove(f"img/{image}")
+	for image in images:  
+		video.write(cv.imread(os.path.join("img/textPics", image))) 
+		os.remove(f"img/textPics/{image}")
 
-  cv.destroyAllWindows() 
-  video.release()
+	video.write(cv.imread(os.path.join("img", "breakPic.png"))) 
+	os.remove(f"img/breakPic.png")
+
+	for reversemap in reverseMapping:  
+		video.write(cv.imread(os.path.join("img/reverseMapping", reversemap))) 
+		os.remove(f"img/reverseMapping/{reversemap}")
+
+	cv.destroyAllWindows() 
+	video.release()
 
 IMGDIR = "img"
 COLORS = {
@@ -227,9 +239,10 @@ textdir = "bible.txt"
 h = HuffmanCoding(textdir)
 output, reverse_mapping  = h.compress()[0], h.compress()[1]
 reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
-bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping")
-bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output")
-imgsToVid(IMGDIR, "bible.avi")
+bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
+breakPic(WIDTH, HEIGHT)
+bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
+imgsToVid("bible.avi")
 
 #print(textToBinary(str(reverse_mapping)))
 
