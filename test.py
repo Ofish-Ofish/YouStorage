@@ -10,6 +10,7 @@ import itertools
 import threading
 import curses
 from PIL import Image, ImageDraw
+from ast import literal_eval
 
 class HuffmanCoding:
 	def __init__(self, path):
@@ -162,7 +163,7 @@ def textToBinary(text):
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
 
 def bitsToImgs(binary, colors, width, height, compressionFactor, picnames, imageSavePath):
-  threeBit = [binary[i:i+3] for i in range(0, len(binary), 3)]
+  threeBit = [binary[i:i+2] for i in range(0, len(binary), 2)]
   threeBitLen = len(threeBit)
 
   os.makedirs(imageSavePath, exist_ok=True)
@@ -173,7 +174,7 @@ def bitsToImgs(binary, colors, width, height, compressionFactor, picnames, image
   pixelsPerFrame = scaledWidth * scaledHeight
 
   for i in range(ceil(threeBitLen/pixelsPerFrame)):
-    img = Image.new('RGB', (width, height), '#808080')
+    img = Image.new('RGB', (width, height), '#FFFFFF')
     draw = ImageDraw.Draw(img)
 
     for j in range(scaledHeight):
@@ -181,7 +182,7 @@ def bitsToImgs(binary, colors, width, height, compressionFactor, picnames, image
         idx = i * pixelsPerFrame + j * scaledWidth + k
 
         if idx < threeBitLen:
-          color = colors.get(threeBit[idx], "#808080")
+          color = colors.get(threeBit[idx], "#FFFFFF")
           x = k * compressionFactor
           y = j * compressionFactor
           draw.rectangle([x,y,x + compressionFactor - 1,y + compressionFactor -1], fill=color)
@@ -191,7 +192,7 @@ def bitsToImgs(binary, colors, width, height, compressionFactor, picnames, image
 
 def breakPic(width, height):
 	os.chdir("img")
-	img = Image.new('RGB', (width, height), '#808080')
+	img = Image.new('RGB', (width, height), '#FFFFFF')
 	img.save(f"breakPic.png")
 	os.chdir("..")
 
@@ -214,35 +215,132 @@ def imgsToVid(vidName):
 	cv.destroyAllWindows() 
 	video.release()
 
+def vidToPics(vidName):
+  vidcap = cv.VideoCapture(vidName)
+  success,image = vidcap.read()
+  count = 0
+
+  while success:
+    cv.imwrite("img/textPics/frame%d.png" % count, image)         
+    success,image = vidcap.read()
+    count += 1
+
+  vidcap.release()
+  # os.remove(vidName)
+  time.sleep(.1)
+	
+def picsToBinary(imgFolder, height, width, compressionFactor, colors):
+	binary = ""
+	scaledWidth = width // compressionFactor
+	scaledHeight = height // compressionFactor
+	images = [f"frame{n}.png" for n in list(range(0,len(os.listdir(imgFolder))))]
+	os.chdir(imgFolder)
+	colors[" "] = "#FFFFFF"
+	
+	colorKeys = list(colors.keys())
+	cleanColorValues = [tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) for color in colors.values()]
+	colorValues = list(colors.values())
+	pool = Pool(processes=(cpu_count() - 1))
+	binaryList = [pool.apply_async(picToBinary, args=(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues)) for image in images]
+
+	pool.close()
+	pool.join()
+
+	for res in binaryList:
+		binary += res.get()
+	
+	os.chdir("../..")
+  
+	return binary 
+
+def picToBinary(image, scaledHeight, scaledWidth, compressionFactor, colorKeys, cleanColorValues, colorValues):
+  im = Image.open(image) 
+  px = im.load()
+  binary = ""
+
+  for j in range(scaledHeight):
+    for k in range(scaledWidth):
+      pixelGroup = []
+      for m in range(compressionFactor):
+        for n in range(compressionFactor):
+          pixelGroup.append(px[k * compressionFactor + m, j * compressionFactor + n])
+
+      avgR, avgG, avgB = 0, 0, 0
+
+      for pixel in pixelGroup:
+        avgR += pixel[0]
+        avgG += pixel[1]
+        avgB += pixel[2]
+
+      pixelNum = len(pixelGroup)
+      averageColor = [avgR/pixelNum, avgG/pixelNum, avgB/pixelNum]
+
+      distances = [(((averageColor[0] - color[0])**2 + (averageColor[1] - color[1])**2 + (averageColor[2] - color[2])**2)**(1/2)) for color in cleanColorValues]
+
+      binary+=(colorKeys[colorValues.index(colorValues[distances.index(min(distances))])])
+  os.remove(image)
+  return binary  
+
+def binaryToText(binary, n):
+  byteList = [binary[i:i+n] for i in range(0, len(binary), n)]
+  intList = [int(b, 2) for b in byteList]
+  return bytes(intList).decode('utf-8', errors='replace')
+
+
+def youtubeToVid(link, savePath, vidname):
+  ydl_opts = {
+    'format': 'bestvideo+bestaudio/best',
+    'outtmpl': f'{savePath}/{vidname}.%(ext)s',  
+  }
+  with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+      ydl.download([link])
+
 IMGDIR = "img"
-COLORS = {
-    "000" : "#000000",
-    "001" : "#FF0000",
-    "010" : "#00FF00",
-    "011" : "#FFFF00",
-    "100" : "#0000FF",
-    "101" : "#FF00FF",
-    "110" : "#00FFFF",
-    "111" : "#FFFFFF",
+COLORS = {	
+	"00": "#FF0000", 
+	"01": "#00FF00",
+	"10": "#0000FF",
+	"11": "#000000"
 
 }
+
 WIDTH = 1920
 HEIGHT = 1080
-COMPRESSIONFACTOR = 10
+COMPRESSIONFACTOR = 8
 
 animationFinished = False
 running = True
 
 textdir = "bible.txt"
 
-### text to vid ###
-h = HuffmanCoding(textdir)
-output, reverse_mapping  = h.compress()[0], h.compress()[1]
-reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
-bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
-breakPic(WIDTH, HEIGHT)
-bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
-imgsToVid("bible.avi")
+
+
+
+
+if __name__ == "__main__":
+	### text to vid ###
+	# h = HuffmanCoding(textdir)
+	# output, reverse_mapping  = h.compress()[0], h.compress()[1]
+	# reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
+	# bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
+	# breakPic(WIDTH, HEIGHT)
+	# bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
+	# imgsToVid("bible.avi")
+
+	# youtube download
+	youtubeToVid("https://youtu.be/N1uh5P18_i8", ".", "bible")
+
+	### vid to text ###
+	vidToPics("bible.mkv")
+	binary = picsToBinary( "img/textPics", HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS)
+	text, reverseMapping = binary.split(maxsplit=1)
+	reverseMapping = literal_eval(binaryToText(reverseMapping.strip(), 8))
+	decompress(text , "decompressed.txt", reverseMapping)
+
+
+
+
+
 
 #print(textToBinary(str(reverse_mapping)))
 
@@ -250,5 +348,5 @@ imgsToVid("bible.avi")
 # imgsToVid(imgDir, vidname)
 
 
-decode_path = decompress(output , "decompressed.txt", reverse_mapping)
+# decode_path = decompress(output , "decompressed.txt", reverse_mapping)
 
