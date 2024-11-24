@@ -20,7 +20,13 @@ YouStorage is a unique project that converts text files into video files and vic
 
 ## Project Explanation
 
-YouStorage converts text files into video files by encoding the text into binary and then representing that binary data as colored pixels in images. These images are then compiled into a video. The process significantly increases the file size, potentially by up to 40000%. The project also supports converting videos back into text files by decoding the binary data from the video frames. additonally the project supports downloading videos from youtube for test purposes.
+YouStorage has three main functionalities: converting text files into video files, converting video files into text files, and downloading videos from YouTube.
+
+- **Text to Video**: The text file is encoded into binary using Huffman coding. The binary data is then converted into colored pixels (red, green, blue, and black) and compiled into images. A break image separates the text from the reverse mapping of the encoding, which is also stored as an image. All images are compiled into a video file. This process can increase the file size by up to 19000%.
+
+- **Video to Text**: The video is read frame by frame, extracting binary data from the pixel colors. The binary data is decoded using the reverse mapping to reconstruct the original text file.
+
+- **YouTube Video Download**: Videos are downloaded using the `yt-dlp` library and can be converted into text files using the same process as converting a video file into a text file.
 
 ## Dependencies
 
@@ -45,4 +51,4 @@ We welcome contributions to YouStorage! To contribute, follow these steps:
 3. Make your changes.
 4. Submit a pull request with a detailed description of your changes.
 
-Please ensure your code follows our coding standards and includes appropriate tests.
+Please ensure your code follows coding standards and includes appropriate tests.

@@ -130,6 +130,7 @@ venv.bak/
 *.png
 *.avi
 *.mp4v
+*.txt
 # Spyder project settings
 .spyderproject
 .spyproject

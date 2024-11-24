@@ -226,7 +226,7 @@ def vidToPics(vidName):
     count += 1
 
   vidcap.release()
-  # os.remove(vidName)
+  os.remove(vidName)
   time.sleep(.1)
 	
 def picsToBinary(imgFolder, height, width, compressionFactor, colors):
@@ -311,7 +311,7 @@ COMPRESSIONFACTOR = 8
 animationFinished = False
 running = True
 
-textdir = "bible.txt"
+textdir = "iliad.txt"
 
 
 
@@ -319,16 +319,16 @@ textdir = "bible.txt"
 
 if __name__ == "__main__":
 	### text to vid ###
-	# h = HuffmanCoding(textdir)
-	# output, reverse_mapping  = h.compress()[0], h.compress()[1]
-	# reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
-	# bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
-	# breakPic(WIDTH, HEIGHT)
-	# bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
-	# imgsToVid("bible.avi")
+	h = HuffmanCoding(textdir)
+	output, reverse_mapping  = h.compress()[0], h.compress()[1]
+	reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
+	bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
+	breakPic(WIDTH, HEIGHT)
+	bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
+	imgsToVid("iliad.avi")
 
 	# youtube download
-	youtubeToVid("https://youtu.be/N1uh5P18_i8", ".", "bible")
+	# youtubeToVid("https://youtu.be/BaRB4_nSwXo", ".", "bible")
 
 	### vid to text ###
 	vidToPics("bible.mkv")
