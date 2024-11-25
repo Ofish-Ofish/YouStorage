@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+import heapq
 import os
 import cv2 as cv
 from math import ceil
@@ -9,6 +9,8 @@ import sys
 import itertools
 import threading
 import curses
+from PIL import Image, ImageDraw
+from ast import literal_eval
 
 def dot12():
     global animationFinished
@@ -276,20 +278,21 @@ def main(colors, width, height, compressionFactor, imgDir):
 
 if __name__ == "__main__":
   IMGDIR = "img"
-  COLORS = {
-     "000" : "#000000",
-     "001" : "#FF0000",
-     "010" : "#00FF00",
-     "011" : "#FFFF00",
-     "100" : "#0000FF",
-     "101" : "#FF00FF",
-     "110" : "#00FFFF",
-     "111" : "#FFFFFF",
+  COLORS = {	
+    "00": "#FF0000", 
+    "01": "#00FF00",
+    "10": "#0000FF",
+    "11": "#000000"
 
   }
+
   WIDTH = 1920
   HEIGHT = 1080
-  COMPRESSIONFACTOR = 10
+  COMPRESSIONFACTOR = 8
+
+  animationFinished = False
+  running = True
+
 
   animationFinished = False
   running = True

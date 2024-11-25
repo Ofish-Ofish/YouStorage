@@ -17,7 +17,7 @@ class HuffmanCoding:
 		self.path = path
 		self.heap = []
 		self.codes = {}
-		self.reverse_mapping = {}
+		self.reverseMapping = {}
 
 	class HeapNode:
 		def __init__(self, char, freq):
@@ -36,20 +36,20 @@ class HuffmanCoding:
 				return False
 			return self.freq == other.freq
 
-	def make_frequency_dict(self, text):
-		frequency = {}
-		for character in text:
-			if not character in frequency:
-				frequency[character] = 0
-			frequency[character] += 1
-		return frequency
+	def makeFreqDict(self, text):
+		freq = {}
+		for chr in text:
+			if not chr in freq:
+				freq[chr] = 0
+			freq[chr] += 1
+		return freq
 
-	def make_heap(self, frequency):
-		for key in frequency:
-			node = self.HeapNode(key, frequency[key])
+	def makeHeap(self, freq):
+		for key in freq:
+			node = self.HeapNode(key, freq[key])
 			heapq.heappush(self.heap, node)
 
-	def merge_nodes(self):
+	def mergeNodes(self):
 		while(len(self.heap)>1):
 			node1 = heapq.heappop(self.heap)
 			node2 = heapq.heappop(self.heap)
@@ -61,103 +61,88 @@ class HuffmanCoding:
 			heapq.heappush(self.heap, merged)
 
 
-	def make_codes_helper(self, root, current_code):
+	def makeCodesHelper(self, root, currentCode):
 		if(root == None):
 			return
 
 		if(root.char != None):
-			self.codes[root.char] = current_code
-			self.reverse_mapping[current_code] = root.char
+			self.codes[root.char] = currentCode
+			self.reverseMapping[currentCode] = root.char
 			return
 
-		self.make_codes_helper(root.left, current_code + "0")
-		self.make_codes_helper(root.right, current_code + "1")
+		self.makeCodesHelper(root.left, currentCode + "0")
+		self.makeCodesHelper(root.right, currentCode + "1")
 
 
-	def make_codes(self):
+	def makeCodes(self):
 		root = heapq.heappop(self.heap)
-		current_code = ""
-		self.make_codes_helper(root, current_code)
+		currentCode = ""
+		self.makeCodesHelper(root, currentCode)
 
 
-	def get_encoded_text(self, text):
-		encoded_text = ""
+	def getEncodedText(self, text):
+		encodedText = ""
 		for character in text:
-			encoded_text += self.codes[character]
-		return encoded_text
+			encodedText += self.codes[character]
+		return encodedText
 
 
-	def pad_encoded_text(self, encoded_text):
-		extra_padding = 8 - len(encoded_text) % 8
-		for i in range(extra_padding):
-			encoded_text += "0"
+	def padEncodedText(self, encodedText):
+		extraPadding = 8 - len(encodedText) % 8
+		for i in range(extraPadding):
+			encodedText += "0"
 
-		padded_info = "{0:08b}".format(extra_padding)
-		encoded_text = padded_info + encoded_text
-		return encoded_text
-
-
-	def get_byte_array(self, padded_encoded_text):
-		if(len(padded_encoded_text) % 8 != 0):
-			print("Encoded text not padded properly")
-			exit(0)
-
-		b = bytearray()
-		for i in range(0, len(padded_encoded_text), 8):
-			byte = padded_encoded_text[i:i+8]
-			b.append(int(byte, 2))
-		return b
-
+		paddedInfo = "{0:08b}".format(extraPadding)
+		encodedText = paddedInfo + encodedText
+		return encodedText
 
 	def compress(self):
-		filename, file_extension = os.path.splitext(self.path)
-
 		with open(self.path, 'r+') as file:
 			text = file.read()
 			text = text.rstrip()
 
-			frequency = self.make_frequency_dict(text)
-			self.make_heap(frequency)
-			self.merge_nodes()
-			self.make_codes()
+			frequency = self.makeFreqDict(text)
+			self.makeHeap(frequency)
+			self.mergeNodes()
+			self.makeCodes()
 
-			encoded_text = self.get_encoded_text(text)
-			padded_encoded_text = self.pad_encoded_text(encoded_text)
-			return [padded_encoded_text, self.reverse_mapping]
+			encodedText = self.getEncodedText(text)
+			paddedEncodedText = self.padEncodedText(encodedText)
+			return [paddedEncodedText, self.reverseMapping]
 
-def remove_padding(padded_encoded_text):
-	padded_info = padded_encoded_text[:8]
-	extra_padding = int(padded_info, 2)
+def removePadding(paddedEncodedText):
+	paddedInfo = paddedEncodedText[:8]
+	extraPadding = int(paddedInfo, 2)
 
-	padded_encoded_text = padded_encoded_text[8:] 
-	encoded_text = padded_encoded_text[:-1*extra_padding]
+	paddedEncodedText = paddedEncodedText[8:] 
+	encodedText = paddedEncodedText[:-1*extraPadding]
 
-	return encoded_text
+	return encodedText
 
-def decode_text(encoded_text, reverse_mapping):
-	current_code = ""
-	decoded_text = ""
+def decodeText(encodedText, reverseMapping):
+	currentCode = ""
+	decodedText = ""
 
-	for bit in encoded_text:
-		current_code += bit
-		if(current_code in reverse_mapping):
-			character = reverse_mapping[current_code]
-			decoded_text += character
-			current_code = ""
+	for bit in encodedText:
+		currentCode += bit
+		if(currentCode in reverseMapping):
+			character = reverseMapping[currentCode]
+			decodedText += character
+			currentCode = ""
 
-	return decoded_text
+	return decodedText
 
-def decompress( bit_string, output_path, reverse_mapping):
-  with open(output_path, 'w') as output:
+def decompress( bitString, outputPath, reverseMapping):
+  with open(outputPath, 'w') as output:
 
-    encoded_text = remove_padding(bit_string)
+    encodedText = removePadding(bitString)
 
-    decompressed_text = decode_text(encoded_text, reverse_mapping)
+    decompressedText = decodeText(encodedText, reverseMapping)
     
-    output.write(decompressed_text)
+    output.write(decompressedText)
 
   print("Decompressed")
-  return output_path
+  return outputPath
 
 def textToBinary(text):
     return ''.join(format(byte, '08b') for char in text for byte in char.encode('utf-8'))
@@ -320,9 +305,9 @@ textdir = "iliad.txt"
 if __name__ == "__main__":
 	### text to vid ###
 	h = HuffmanCoding(textdir)
-	output, reverse_mapping  = h.compress()[0], h.compress()[1]
-	reverseMappingPicAmount = ceil(len(textToBinary(str(reverse_mapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
-	bitsToImgs(textToBinary(str(reverse_mapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
+	output, reverseMapping  = h.compress()[0], h.compress()[1]
+	reverseMappingPicAmount = ceil(len(textToBinary(str(reverseMapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
+	bitsToImgs(textToBinary(str(reverseMapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
 	breakPic(WIDTH, HEIGHT)
 	bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
 	imgsToVid("iliad.avi")
