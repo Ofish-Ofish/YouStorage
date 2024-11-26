@@ -97,7 +97,7 @@ class HuffmanCoding:
 		return encodedText
 
 	def compress(self):
-		with open(self.path, 'r+') as file:
+		with open(self.path, 'r+', encoding="utf-8") as file:
 			text = file.read()
 			text = text.rstrip()
 
@@ -133,7 +133,7 @@ def decodeText(encodedText, reverseMapping):
 	return decodedText
 
 def decompress( bitString, outputPath, reverseMapping):
-  with open(outputPath, 'w') as output:
+  with open(outputPath, 'w', encoding="utf-8") as output:
 
     encodedText = removePadding(bitString)
 
@@ -379,9 +379,6 @@ def main(colors, width, height, compressionFactor, imgDir):
       bitsToImgs(output, colors, width, height, compressionFactor, "output", "img/textPics")
       imgsToVid(vidname)
 
-
-      # bitsToImgs(textFileToBinary(textdir), colors, width, height, compressionFactor)
-      # imgsToVid(imgDir, vidname)
     except:
       animationFinished = True
       print("error encountered try again")
@@ -420,21 +417,17 @@ def main(colors, width, height, compressionFactor, imgDir):
     t = threading.Thread(target=dot12, )
     t.start()
 
-    try:
-      vidToPics(vidname)
-      binary = picsToBinary( "img/textPics", height, width, compressionFactor, colors)
-      text, reverseMapping = binary.split(maxsplit=1)
-      reverseMapping = literal_eval(binaryToText(reverseMapping.strip(), 8))
-      decompress(text , textdir, reverseMapping)
-         
+    # try:
+    vidToPics(vidname)
+    binary = picsToBinary( "img/textPics", height, width, compressionFactor, colors)
+    text, reverseMapping = binary.split(maxsplit=1)
+    reverseMapping = literal_eval(binaryToText(reverseMapping.strip(), 8))
+    decompress(text , textdir, reverseMapping)
 
-      # vidToPics(vidname)
-      # with open(textname, "w", encoding="utf-8") as f:
-      #   f.write(binaryToText(picsToBinary(imgDir, height, width, compressionFactor, colors), 8))
-    except:
-      animationFinished = True
-      print("error encountered try again")
-      return
+    # except:
+    #   animationFinished = True
+    #   print("error encountered try again")
+    #   return
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
