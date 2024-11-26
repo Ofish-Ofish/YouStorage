@@ -304,19 +304,19 @@ textdir = "iliad.txt"
 
 if __name__ == "__main__":
 	### text to vid ###
-	h = HuffmanCoding(textdir)
-	output, reverseMapping  = h.compress()[0], h.compress()[1]
-	reverseMappingPicAmount = ceil(len(textToBinary(str(reverseMapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
-	bitsToImgs(textToBinary(str(reverseMapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
-	breakPic(WIDTH, HEIGHT)
-	bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
-	imgsToVid("iliad.avi")
+	# h = HuffmanCoding(textdir)
+	# output, reverseMapping  = h.compress()[0], h.compress()[1]
+	# reverseMappingPicAmount = ceil(len(textToBinary(str(reverseMapping)))/(WIDTH/COMPRESSIONFACTOR * HEIGHT/COMPRESSIONFACTOR)/3)
+	# bitsToImgs(textToBinary(str(reverseMapping)), COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "reverseMapping", "img/reverseMapping")
+	# breakPic(WIDTH, HEIGHT)
+	# bitsToImgs(output, COLORS, WIDTH, HEIGHT, COMPRESSIONFACTOR, "output", "img/textPics")
+	# imgsToVid("iliad.avi")
 
 	# youtube download
-	# youtubeToVid("https://youtu.be/BaRB4_nSwXo", ".", "bible")
+	youtubeToVid("https://youtu.be/Ti4egn62dA0", ".", "iliad")
 
 	### vid to text ###
-	vidToPics("bible.mkv")
+	vidToPics("iliad.mkv")
 	binary = picsToBinary( "img/textPics", HEIGHT, WIDTH, COMPRESSIONFACTOR, COLORS)
 	text, reverseMapping = binary.split(maxsplit=1)
 	reverseMapping = literal_eval(binaryToText(reverseMapping.strip(), 8))
