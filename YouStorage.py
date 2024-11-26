@@ -352,7 +352,13 @@ def main(colors, width, height, compressionFactor, imgDir):
 
   if answer == 0:
     textdir = input("Please enter the text file name and file extension you would like to convert: ")
-    validPath(textdir)
+    if not validPath(textdir):
+      return
+
+    if not textdir.endswith(".txt"):
+      print("The file must be a text file.")
+      return
+    
     os.system('cls' if os.name == 'nt' else 'clear')
     vidname = input("Please enter the name of the video file you would like to save: ")
     vidname = vidname + ".avi"
@@ -394,9 +400,20 @@ def main(colors, width, height, compressionFactor, imgDir):
     time.sleep(5)
     
     vidname = input("Please enter the reletive path of the video file you would like to convert: ")
-    validPath(vidname)
+    if not validPath(vidname):
+      return
+    
+    validVidFormats = [".avi", ".mp4", ".mov", ".webm", ".mkv"]
+    if not any(vidname.endswith(format) for format in validVidFormats):
+      print("The file must be a video file.")
+      return
+
     os.system('cls' if os.name == 'nt' else 'clear')
     textdir = input("Please enter the text file name and file extension you would like to convert: ")
+
+    if not textdir.endswith(".txt"):
+      print("The file must be a text file.")
+      return
     os.system('cls' if os.name == 'nt' else 'clear')  
 
     animationFinished = False
