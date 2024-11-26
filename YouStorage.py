@@ -385,7 +385,7 @@ def main(colors, width, height, compressionFactor, imgDir):
     except:
       animationFinished = True
       print("error encountered try again")
-      quit()
+      return
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -434,7 +434,7 @@ def main(colors, width, height, compressionFactor, imgDir):
     except:
       animationFinished = True
       print("error encountered try again")
-      quit()
+      return
 
     animationFinished = True
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -449,7 +449,7 @@ def main(colors, width, height, compressionFactor, imgDir):
       youtubeToVid(url, ".", vidname)
     except:
       print("error encountered try again")
-      quit()
+      return
 
 if __name__ == "__main__":
   IMGDIR = "img"
