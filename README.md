@@ -1,8 +1,6 @@
 
 ![YouStorage](https://github.com/user-attachments/assets/92486502-f9ae-44df-9518-5db3764147b6)
 
-# YouStorage 🔁
-
 ## Table of Contents
 
 1. [Introduction](#introduction)
