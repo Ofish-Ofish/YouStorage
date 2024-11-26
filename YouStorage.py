@@ -472,6 +472,11 @@ if __name__ == "__main__":
   animationFinished = False
   running = True
 
+  required_dirs = ["img", "img/reverseMapping", "img/textPics"]
+  for directory in required_dirs:
+    if not os.path.exists(directory):
+      os.makedirs(directory)
+
   os.system('cls' if os.name == 'nt' else 'clear')
   intro()
 
